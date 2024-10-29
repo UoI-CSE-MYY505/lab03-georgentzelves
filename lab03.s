@@ -98,9 +98,25 @@ outShowRowLoop:
 # ----------------------------------------
 
 rgb888_to_rgb565:
-# ----------------------------------------
-# Write your code here.
-# You may move the "return" instruction (jalr zero, ra, 0).
+    mul t0, a1, a2 #keep track of how many pixels are left
+loop_rgb888_to_rgb565:
+    beq t0, zero, return_rgb565 #no more pixels
+    lbu t1, 2(a0) #load third (least important) byte of a0 (blue) 
+    lbu t2, 1(a0) #load second byte of a0 (green)
+    lbu t3, 0(a0) #load first byte of a0 (red)
+    #the three previous bytes that we loaded are the colors for our pixel 
+    srli t1, t1, 3 #get rid of the last 3 bits of blue
+    srli t2, t2, 2 #get rid of the last 2 bits of green
+    srli t3, t3, 3 #get rid of the last 3 bits of red
+    slli t2, t2, 5 #move green 5 bits to the left (so there's space to add the blue)
+    slli t3, t3, 11 #move red 11 bits to the left (so there's space to add green and blue)
+    or t1, t1, t2 #add green to blue
+    or t1, t1, t3 #add red to green and blue
+    sh t1, 0(a3)
+    addi a3, a3, 2
+    addi a0, a0, 3
+    addi t0, t0, -1
+    j loop_rgb888_to_rgb565
+return_rgb565:
     jalr zero, ra, 0
-
-
+    
